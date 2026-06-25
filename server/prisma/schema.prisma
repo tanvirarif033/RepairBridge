@@ -19,9 +19,294 @@ model User {
   phone     String?  @unique
   password  String
   image     String?
+
   role      Role     @default(USER)
+
   isActive  Boolean  @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  repairRequests RepairRequest[]
+  reviews Review[]
+
+  notifications Notification[]
 }
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  QUOTATION_SENT
+  WAITING_CUSTOMER_RESPONSE
+  APPOINTMENT_CONFIRMED
+  REPAIR_IN_PROGRESS
+  COMPLETED
+}
+
+enum RepairCategory {
+  SCREEN_REPLACEMENT
+  BATTERY_REPLACEMENT
+  CAMERA_REPAIR
+  CHARGING_PORT
+  SPEAKER_REPAIR
+  MICROPHONE_REPAIR
+  SOFTWARE_ISSUE
+  WATER_DAMAGE
+  MOTHERBOARD_REPAIR
+  OTHER
+}
+
+model RepairRequest {
+
+  id Int @id @default(autoincrement())
+
+ 
+
+  userId Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+ 
+
+  brand String
+
+  model String
+
+  repairCategory RepairCategory
+
+
+
+  title String
+
+  description String @db.Text
+
+  
+
+  customerLatitude Decimal @db.Decimal(10,8)
+
+  customerLongitude Decimal @db.Decimal(11,8)
+
+  customerAddress String
+
+  
+
+  status RequestStatus @default(PENDING)
+
+  
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  
+
+  images RepairRequestImage[]
+
+  selectedServiceCenters SelectedServiceCenter[]
+
+  quotations Quotation[]
+
+  appointment Appointment?
+
+  review Review?
+
+  
+
+  @@index([userId])
+
+  @@index([status])
+
+}
+
+model RepairRequestImage {
+
+  id Int @id @default(autoincrement())
+
+  repairRequestId Int
+
+  repairRequest RepairRequest @relation(fields: [repairRequestId], references: [id], onDelete: Cascade)
+
+  imageUrl String
+
+  createdAt DateTime @default(now())
+}
+
+model SelectedServiceCenter {
+  id Int @id @default(autoincrement())
+
+  repairRequestId Int
+  repairRequest RepairRequest @relation(fields: [repairRequestId], references: [id], onDelete: Cascade)
+
+  // Google Place Information
+  googlePlaceId String
+  name          String
+  address       String
+  phone         String?
+  rating        Float?
+
+  latitude      Decimal @db.Decimal(10,8)
+  longitude     Decimal @db.Decimal(11,8)
+
+ 
+  isCurrent Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quotations Quotation[]
+
+  @@index([repairRequestId])
+}
+
+enum QuotationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  RESCHEDULE_REQUESTED
+  ANOTHER_SERVICE_CENTER_REQUESTED
+}
+
+model Quotation {
+  id Int @id @default(autoincrement())
+
+  repairRequestId Int
+  repairRequest RepairRequest @relation(fields: [repairRequestId], references: [id], onDelete: Cascade)
+
+  serviceCenterId Int
+  serviceCenter SelectedServiceCenter @relation(fields: [serviceCenterId], references: [id])
+
+  estimatedCost Decimal @db.Decimal(10,2)
+
+  estimatedRepairDays Int
+
+  warranty String?
+
+  appointmentDate DateTime
+
+  notes String? @db.Text
+
+  status QuotationStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointment Appointment?
+  payment Payment?
+
+  @@index([repairRequestId])
+  @@index([serviceCenterId])
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model Appointment {
+  id Int @id @default(autoincrement())
+
+  repairRequestId Int @unique
+  repairRequest RepairRequest @relation(fields: [repairRequestId], references: [id], onDelete: Cascade)
+
+  quotationId Int @unique
+  quotation Quotation @relation(fields: [quotationId], references: [id])
+
+  appointmentDate DateTime
+
+  status AppointmentStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  BKASH
+  NAGAD
+  ROCKET
+  CARD
+  CASH
+}
+
+model Payment {
+  id Int @id @default(autoincrement())
+
+  quotationId Int @unique
+  quotation Quotation @relation(fields: [quotationId], references: [id])
+
+  amount Decimal @db.Decimal(10,2)
+
+  paymentMethod PaymentMethod?
+
+  paymentStatus PaymentStatus @default(PENDING)
+
+  transactionId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Review {
+
+  id Int @id @default(autoincrement())
+
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  repairRequestId Int @unique
+  repairRequest RepairRequest @relation(fields: [repairRequestId], references: [id], onDelete: Cascade)
+
+  rating Int
+
+  comment String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+
+}
+
+enum NotificationType {
+  REQUEST
+  QUOTATION
+  APPOINTMENT
+  PAYMENT
+  REVIEW
+}
+
+model Notification {
+
+  id Int @id @default(autoincrement())
+
+  userId Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title String
+
+  message String
+
+  type NotificationType
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+
+}
+
