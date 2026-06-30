@@ -1,16 +1,32 @@
 import { Request, Response } from "express";
 import { getAllRepairRequests ,approveRepairRequest,rejectRepairRequest,  cancelRepairRequestByAdmin, getDashboardStatistics,} from "./admin.service";
+import { RequestStatus } from "@prisma/client";
 
 export const getAllRequests = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const result = await getAllRepairRequests();
+    const page = Number(req.query.page) || 1;
+
+    const limit = Number(req.query.limit) || 10;
+
+    const search = req.query.search as string;
+
+    const status = req.query.status as
+      | RequestStatus
+      | undefined;
+
+    const result = await getAllRepairRequests(
+      page,
+      limit,
+      search,
+      status
+    );
 
     res.status(200).json({
       success: true,
-      message: "All repair requests fetched successfully",
+      message: "Repair requests fetched successfully",
       data: result,
     });
   } catch (error: any) {

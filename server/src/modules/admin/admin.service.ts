@@ -1,8 +1,54 @@
 import prisma from "../../config/prisma";
-import { RequestStatus } from "@prisma/client";
 
-export const getAllRepairRequests = async () => {
+import { Prisma, RequestStatus } from "@prisma/client";
+export const getAllRepairRequests = async (
+  page: number,
+  limit: number,
+  search?: string,
+  status?: RequestStatus
+) => {
+  const skip = (page - 1) * limit;
+
+  const where: Prisma.RepairRequestWhereInput = {};
+
+
+  if (status) {
+    where.status = status;
+  }
+
+  
+  if (search) {
+    where.OR = [
+      {
+        brand: {
+          contains: search,
+        },
+      },
+      {
+        model: {
+          contains: search,
+        },
+      },
+      {
+        user: {
+          name: {
+            contains: search,
+          },
+        },
+      },
+      {
+        user: {
+          email: {
+            contains: search,
+          },
+        },
+      },
+    ];
+  }
+
   const requests = await prisma.repairRequest.findMany({
+    where,
+
     include: {
       user: {
         select: {
@@ -18,14 +64,30 @@ export const getAllRepairRequests = async () => {
       images: true,
     },
 
+    skip,
+
+    take: limit,
+
     orderBy: {
       createdAt: "desc",
     },
   });
 
-  return requests;
-};
+  const total = await prisma.repairRequest.count({
+    where,
+  });
 
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+    },
+
+    data: requests,
+  };
+};
 
 
 export const approveRepairRequest = async (
