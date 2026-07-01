@@ -1,5 +1,6 @@
 import prisma from "../../config/prisma";
-import { RequestStatus } from "@prisma/client";
+import { RequestStatus, Prisma } from "@prisma/client";
+
 export const createRepairRequest = async (
   userId: number,
   payload: {
@@ -8,11 +9,9 @@ export const createRepairRequest = async (
     repairCategory: any;
     title: string;
     description: string;
-
     customerLatitude: number;
     customerLongitude: number;
     customerAddress: string;
-
     serviceCenter: {
       googlePlaceId: string;
       name: string;
@@ -27,42 +26,26 @@ export const createRepairRequest = async (
   const repairRequest = await prisma.repairRequest.create({
     data: {
       userId,
-
       brand: payload.brand,
-
       model: payload.model,
-
       repairCategory: payload.repairCategory,
-
       title: payload.title,
-
       description: payload.description,
-
       customerLatitude: payload.customerLatitude,
-
       customerLongitude: payload.customerLongitude,
-
       customerAddress: payload.customerAddress,
-
       selectedServiceCenters: {
         create: {
           googlePlaceId: payload.serviceCenter.googlePlaceId,
-
           name: payload.serviceCenter.name,
-
           address: payload.serviceCenter.address,
-
           phone: payload.serviceCenter.phone,
-
           rating: payload.serviceCenter.rating,
-
           latitude: payload.serviceCenter.latitude,
-
           longitude: payload.serviceCenter.longitude,
         },
       },
     },
-
     include: {
       selectedServiceCenters: true,
     },
@@ -71,46 +54,97 @@ export const createRepairRequest = async (
   return repairRequest;
 };
 
+// FIXED: Added pagination, search, and filter support
 export const getMyRepairRequests = async (
-  userId: number
+  userId: number,
+  page: number = 1,
+  limit: number = 10,
+  search: string = '',
+  status: string = ''
 ) => {
-  const repairRequests =
-    await prisma.repairRequest.findMany({
-      where: {
-        userId,
-      },
+  const skip = (page - 1) * limit;
 
-      include: {
-        selectedServiceCenters: true,
-      },
+  // Build where clause
+  const where: Prisma.RepairRequestWhereInput = {
+    userId,
+  };
 
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+  // Add status filter if provided and not 'all'
+  if (status && status !== 'all' && status !== 'undefined') {
+    where.status = status as RequestStatus;
+  }
 
-  return repairRequests;
+  // Add search filter if provided
+  if (search && search.trim()) {
+    where.OR = [
+      {
+        title: {
+          contains: search.trim(),
+        },
+      },
+      {
+        brand: {
+          contains: search.trim(),
+        },
+      },
+      {
+        model: {
+          contains: search.trim(),
+        },
+      },
+      {
+        description: {
+          contains: search.trim(),
+        },
+      },
+    ];
+  }
+
+  // Get total count
+  const total = await prisma.repairRequest.count({ where });
+
+  // Get requests with pagination
+  const requests = await prisma.repairRequest.findMany({
+    where,
+    include: {
+      selectedServiceCenters: true,
+      images: true,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    skip,
+    take: limit,
+  });
+
+  return {
+    data: requests,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+    },
+  };
 };
 
 export const getSingleRepairRequest = async (
   userId: number,
   requestId: number
 ) => {
-  const repairRequest =
-    await prisma.repairRequest.findFirst({
-      where: {
-        id: requestId,
-        userId,
-      },
-
-      include: {
-        images: true,
-        selectedServiceCenters: true,
-        quotations: true,
-        appointment: true,
-        review: true,
-      },
-    });
+  const repairRequest = await prisma.repairRequest.findFirst({
+    where: {
+      id: requestId,
+      userId,
+    },
+    include: {
+      images: true,
+      selectedServiceCenters: true,
+      quotations: true,
+      appointment: true,
+      review: true,
+    },
+  });
 
   if (!repairRequest) {
     throw new Error("Repair request not found");
@@ -145,9 +179,7 @@ export const updateRepairRequest = async (
   }
 
   if (repairRequest.status !== "PENDING") {
-    throw new Error(
-      "Only pending repair requests can be updated"
-    );
+    throw new Error("Only pending repair requests can be updated");
   }
 
   const updatedRequest = await prisma.repairRequest.update({
@@ -164,7 +196,6 @@ export const updateRepairRequest = async (
       customerLongitude: payload.customerLongitude,
       customerAddress: payload.customerAddress,
     },
-
     include: {
       selectedServiceCenters: true,
     },
@@ -189,9 +220,7 @@ export const cancelRepairRequest = async (
   }
 
   if (repairRequest.status !== RequestStatus.PENDING) {
-    throw new Error(
-      "Only pending repair requests can be cancelled"
-    );
+    throw new Error("Only pending repair requests can be cancelled");
   }
 
   const cancelledRequest = await prisma.repairRequest.update({

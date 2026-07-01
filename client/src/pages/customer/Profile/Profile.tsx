@@ -118,7 +118,7 @@ const Profile: React.FC = () => {
                       onChange={handleChange}
                       className="input-field pl-10"
                       disabled
-                      className="input-field pl-10 bg-gray-50"
+                      //className="input-field pl-10 bg-gray-50"
                     />
                   </div>
                   <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
