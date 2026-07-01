@@ -3,13 +3,14 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
-// Layout
-import Layout from './components/layout/Layout';
 
-// Context
+import Layout from './components/layout/Layout';
+import AdminLayout from './components/layout/AdminLayout/AdminLayout';
+
+
 import { AuthProvider } from './context/AuthContext';
 
-// Pages
+
 import Home from './pages/public/Home/Home';
 import Login from './pages/auth/Login/Login';
 import Register from './pages/auth/Register/Register';
@@ -22,6 +23,14 @@ import Quotations from './pages/customer/Quotations/Quotations';
 import Appointments from './pages/customer/Appointments/Appointments';
 import Payments from './pages/customer/Payments/Payments';
 import Reviews from './pages/customer/Reviews/Reviews';
+
+
+import AdminDashboard from './pages/admin/AdminDashboard/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers/AdminUsers';
+import AdminRequests from './pages/admin/AdminRequests/AdminRequests';
+
+
+import AdminRoute from './components/shared/AdminRoute';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,20 +47,18 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
-          <Layout>
-            <Routes>
-              {/* Public Routes */}
+          <Routes>
+            
+            <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<div>About Page</div>} />
               <Route path="/services" element={<div>Services Page</div>} />
               <Route path="/contact" element={<div>Contact Page</div>} />
               <Route path="/faq" element={<div>FAQ Page</div>} />
-              
-              {/* Auth Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               
-              {/* Customer Routes */}
+             
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/my-requests" element={<MyRequests />} />
@@ -66,21 +73,32 @@ function App() {
               <Route path="/reviews" element={<Reviews />} />
               <Route path="/reviews/create/:requestId" element={<div>Create Review</div>} />
               <Route path="/reviews/edit/:id" element={<div>Edit Review</div>} />
-              
-              {/* Admin Routes (Placeholder) */}
-              <Route path="/admin" element={<div>Admin Dashboard</div>} />
-              <Route path="/admin/users" element={<div>Manage Users</div>} />
-              <Route path="/admin/requests" element={<div>Manage Requests</div>} />
-              
-              {/* 404 */}
-              <Route path="*" element={<div className="min-h-[60vh] flex items-center justify-center">
+            </Route>
+
+            
+            <Route element={<AdminRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/requests" element={<AdminRequests />} />
+                <Route path="/admin/quotations" element={<div>Admin Quotations</div>} />
+                <Route path="/admin/appointments" element={<div>Admin Appointments</div>} />
+                <Route path="/admin/payments" element={<div>Admin Payments</div>} />
+                <Route path="/admin/reviews" element={<div>Admin Reviews</div>} />
+                <Route path="/admin/settings" element={<div>Admin Settings</div>} />
+              </Route>
+            </Route>
+
+         
+            <Route path="*" element={
+              <div className="min-h-[60vh] flex items-center justify-center">
                 <div className="text-center">
                   <h1 className="text-6xl font-bold text-gray-300">404</h1>
                   <p className="text-gray-500 mt-2">Page not found</p>
                 </div>
-              </div>} />
-            </Routes>
-          </Layout>
+              </div>
+            } />
+          </Routes>
           <Toaster 
             position="top-right"
             toastOptions={{

@@ -1,9 +1,9 @@
 import prisma from "../../config/prisma";
-
 import { Prisma, RequestStatus } from "@prisma/client";
+
 export const getAllRepairRequests = async (
-  page: number,
-  limit: number,
+  page: number = 1,
+  limit: number = 10,
   search?: string,
   status?: RequestStatus
 ) => {
@@ -11,92 +11,58 @@ export const getAllRepairRequests = async (
 
   const where: Prisma.RepairRequestWhereInput = {};
 
-
+  // Status Filter
   if (status) {
     where.status = status;
   }
 
-  
+  // Search
   if (search) {
     where.OR = [
-      {
-        brand: {
-          contains: search,
-        },
-      },
-      {
-        model: {
-          contains: search,
-        },
-      },
-      {
-        user: {
-          name: {
-            contains: search,
-          },
-        },
-      },
-      {
-        user: {
-          email: {
-            contains: search,
-          },
-        },
-      },
+      { title: { contains: search } },
+      { brand: { contains: search } },
+      { model: { contains: search } },
+      { user: { name: { contains: search } } },
+      { user: { email: { contains: search } } },
     ];
   }
 
-  const requests = await prisma.repairRequest.findMany({
-    where,
-
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
+  const [requests, total] = await prisma.$transaction([
+    prisma.repairRequest.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
         },
+        selectedServiceCenters: true,
+        images: true,
       },
-
-      selectedServiceCenters: true,
-
-      images: true,
-    },
-
-    skip,
-
-    take: limit,
-
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  const total = await prisma.repairRequest.count({
-    where,
-  });
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.repairRequest.count({ where }),
+  ]);
 
   return {
+    data: requests,
     meta: {
       page,
       limit,
       total,
       totalPage: Math.ceil(total / limit),
     },
-
-    data: requests,
   };
 };
 
-
-export const approveRepairRequest = async (
-  requestId: number
-) => {
+export const approveRepairRequest = async (requestId: number) => {
   const repairRequest = await prisma.repairRequest.findUnique({
-    where: {
-      id: requestId,
-    },
+    where: { id: requestId },
   });
 
   if (!repairRequest) {
@@ -107,25 +73,25 @@ export const approveRepairRequest = async (
     throw new Error("Only pending requests can be approved");
   }
 
-  const updatedRequest = await prisma.repairRequest.update({
-    where: {
-      id: requestId,
-    },
-    data: {
-      status: RequestStatus.APPROVED,
+  return await prisma.repairRequest.update({
+    where: { id: requestId },
+    data: { status: RequestStatus.APPROVED },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+        },
+      },
     },
   });
-
-  return updatedRequest;
 };
 
-export const rejectRepairRequest = async (
-  requestId: number
-) => {
+export const rejectRepairRequest = async (requestId: number) => {
   const repairRequest = await prisma.repairRequest.findUnique({
-    where: {
-      id: requestId,
-    },
+    where: { id: requestId },
   });
 
   if (!repairRequest) {
@@ -136,26 +102,25 @@ export const rejectRepairRequest = async (
     throw new Error("Only pending requests can be rejected");
   }
 
-  const updatedRequest = await prisma.repairRequest.update({
-    where: {
-      id: requestId,
-    },
-    data: {
-      status: RequestStatus.REJECTED,
+  return await prisma.repairRequest.update({
+    where: { id: requestId },
+    data: { status: RequestStatus.REJECTED },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+        },
+      },
     },
   });
-
-  return updatedRequest;
 };
 
-
-export const cancelRepairRequestByAdmin = async (
-  requestId: number
-) => {
+export const cancelRepairRequestByAdmin = async (requestId: number) => {
   const repairRequest = await prisma.repairRequest.findUnique({
-    where: {
-      id: requestId,
-    },
+    where: { id: requestId },
   });
 
   if (!repairRequest) {
@@ -166,23 +131,24 @@ export const cancelRepairRequestByAdmin = async (
     repairRequest.status !== RequestStatus.PENDING &&
     repairRequest.status !== RequestStatus.APPROVED
   ) {
-    throw new Error(
-      "Only pending or approved repair requests can be cancelled"
-    );
+    throw new Error("Only pending or approved repair requests can be cancelled");
   }
 
-  const updatedRequest = await prisma.repairRequest.update({
-    where: {
-      id: requestId,
-    },
-    data: {
-      status: RequestStatus.CANCELLED,
+  return await prisma.repairRequest.update({
+    where: { id: requestId },
+    data: { status: RequestStatus.CANCELLED },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+        },
+      },
     },
   });
-
-  return updatedRequest;
 };
-
 
 export const getDashboardStatistics = async () => {
   const [
@@ -199,38 +165,14 @@ export const getDashboardStatistics = async () => {
   ] = await prisma.$transaction([
     prisma.user.count(),
     prisma.repairRequest.count(),
-
-    prisma.repairRequest.count({
-      where: { status: RequestStatus.PENDING },
-    }),
-
-    prisma.repairRequest.count({
-      where: { status: RequestStatus.APPROVED },
-    }),
-
-    prisma.repairRequest.count({
-      where: { status: RequestStatus.REJECTED },
-    }),
-
-    prisma.repairRequest.count({
-      where: { status: RequestStatus.CANCELLED },
-    }),
-
-    prisma.repairRequest.count({
-      where: { status: RequestStatus.QUOTATION_SENT },
-    }),
-
-    prisma.repairRequest.count({
-      where: { status: RequestStatus.APPOINTMENT_CONFIRMED },
-    }),
-
-    prisma.repairRequest.count({
-      where: { status: RequestStatus.REPAIR_IN_PROGRESS },
-    }),
-
-    prisma.repairRequest.count({
-      where: { status: RequestStatus.COMPLETED },
-    }),
+    prisma.repairRequest.count({ where: { status: RequestStatus.PENDING } }),
+    prisma.repairRequest.count({ where: { status: RequestStatus.APPROVED } }),
+    prisma.repairRequest.count({ where: { status: RequestStatus.REJECTED } }),
+    prisma.repairRequest.count({ where: { status: RequestStatus.CANCELLED } }),
+    prisma.repairRequest.count({ where: { status: RequestStatus.QUOTATION_SENT } }),
+    prisma.repairRequest.count({ where: { status: RequestStatus.APPOINTMENT_CONFIRMED } }),
+    prisma.repairRequest.count({ where: { status: RequestStatus.REPAIR_IN_PROGRESS } }),
+    prisma.repairRequest.count({ where: { status: RequestStatus.COMPLETED } }),
   ]);
 
   return {
@@ -245,4 +187,106 @@ export const getDashboardStatistics = async () => {
     repairInProgress,
     completedRepairs,
   };
+};
+
+export const getAllUsers = async (
+  page: number = 1,
+  limit: number = 10,
+  search?: string,
+  role?: string
+) => {
+  const skip = (page - 1) * limit;
+
+  const where: Prisma.UserWhereInput = {};
+
+  if (role && role !== 'all') {
+    where.role = role as any;
+  }
+
+  if (search) {
+    where.OR = [
+      { name: { contains: search } },
+      { email: { contains: search } },
+    ];
+  }
+
+  const [users, total] = await prisma.$transaction([
+    prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        image: true,
+      },
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return {
+    data: users,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+    },
+  };
+};
+
+// NEW: Change user role
+export const changeUserRole = async (userId: number, newRole: 'USER' | 'ADMIN') => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { role: newRole },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+    },
+  });
+};
+
+// NEW: Toggle user status
+export const toggleUserStatus = async (userId: number) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return await prisma.user.update({
+    where: { id: userId },
+    data: { isActive: !user.isActive },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+    },
+  });
 };
