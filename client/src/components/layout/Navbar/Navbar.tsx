@@ -4,7 +4,7 @@ import {
   FiMenu, FiX, FiUser, FiLogOut, FiHome, FiTool, 
   FiInfo, FiPhone, FiHelpCircle, FiChevronDown,
   FiSettings, FiFileText, FiClock, FiCreditCard, FiStar,
-  FiDollarSign, FiCalendar
+  FiDollarSign, FiCalendar, FiShield, FiLayout, FiUsers
 } from 'react-icons/fi';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -31,7 +31,8 @@ const Navbar: React.FC = () => {
     { name: 'FAQ', path: '/faq', icon: FiHelpCircle },
   ];
 
-  const userMenuItems = [
+  // Customer menu items
+  const customerMenuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: FiHome },
     { name: 'My Requests', path: '/my-requests', icon: FiFileText },
     { name: 'Quotations', path: '/quotations', icon: FiDollarSign },
@@ -42,6 +43,29 @@ const Navbar: React.FC = () => {
     { name: 'Settings', path: '/settings', icon: FiSettings },
   ];
 
+  // Admin menu items
+  const adminMenuItems = [
+    { name: 'Admin Dashboard', path: '/admin', icon: FiShield },
+    { name: 'Manage Users', path: '/admin/users', icon: FiUsers },
+    { name: 'Manage Requests', path: '/admin/requests', icon: FiFileText },
+    { name: 'Quotations', path: '/admin/quotations', icon: FiDollarSign },
+    { name: 'Appointments', path: '/admin/appointments', icon: FiCalendar },
+    { name: 'Payments', path: '/admin/payments', icon: FiCreditCard },
+    { name: 'Reviews', path: '/admin/reviews', icon: FiStar },
+    { name: 'Settings', path: '/admin/settings', icon: FiSettings },
+  ];
+
+  // Get menu items based on user role
+  const getMenuItems = () => {
+    if (user?.role === 'ADMIN') {
+      return adminMenuItems;
+    }
+    return customerMenuItems;
+  };
+
+  // Check if user is admin
+  const isAdmin = user?.role === 'ADMIN';
+
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="container-custom">
@@ -50,9 +74,14 @@ const Navbar: React.FC = () => {
           <Link to="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold text-blue-600">🔧 Repair</span>
             <span className="text-2xl font-bold text-gray-800">Bridge</span>
+            {isAdmin && (
+              <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+                Admin
+              </span>
+            )}
           </Link>
 
-          
+          {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
             {navLinks.map((link) => (
               <Link
@@ -79,20 +108,31 @@ const Navbar: React.FC = () => {
                   <FiChevronDown className={`text-gray-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-               
+                {/* Dropdown Menu */}
                 {isDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg py-2 border border-gray-100 animate-fadeIn">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-lg py-2 border border-gray-100 animate-fadeIn">
+                    {/* User Info */}
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
                       <p className="text-xs text-gray-500">{user?.email}</p>
-                      <span className={`inline-block mt-1 px-2 py-0.5 text-xs rounded-full ${
-                        user?.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {user?.role === 'ADMIN' ? 'Admin' : 'Customer'}
-                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${
+                          isAdmin ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {isAdmin ? 'Admin' : 'Customer'}
+                        </span>
+                        {isAdmin && (
+                          <span className="inline-block px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                            <FiShield className="inline w-3 h-3 mr-0.5" />
+                            Verified
+                          </span>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Menu Items */}
                     <div className="py-1">
-                      {userMenuItems.map((item) => (
+                      {getMenuItems().map((item) => (
                         <Link
                           key={item.path}
                           to={item.path}
@@ -101,9 +141,30 @@ const Navbar: React.FC = () => {
                         >
                           <item.icon className="text-gray-400" />
                           {item.name}
+                          {item.path === '/admin' && (
+                            <span className="ml-auto text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                              Admin
+                            </span>
+                          )}
                         </Link>
                       ))}
                     </div>
+
+                    {/* Divider for Admin - Show Customer Dashboard link */}
+                    {isAdmin && (
+                      <div className="border-t border-gray-100 py-1">
+                        <Link
+                          to="/dashboard"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <FiLayout className="text-gray-400" />
+                          Customer Dashboard
+                        </Link>
+                      </div>
+                    )}
+
+                    {/* Logout */}
                     <div className="border-t border-gray-100 py-1">
                       <button
                         onClick={handleLogout}
@@ -128,7 +189,7 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-        
+          {/* Mobile Menu Button */}
           <button
             onClick={toggleMenu}
             className="md:hidden text-gray-700 hover:text-blue-600 transition-colors"
@@ -137,7 +198,7 @@ const Navbar: React.FC = () => {
           </button>
         </div>
 
-        
+        {/* Mobile Menu */}
         <div className={`md:hidden ${isOpen ? 'block' : 'hidden'} pb-4 border-t border-gray-100`}>
           <div className="flex flex-col space-y-3 pt-4">
             {navLinks.map((link) => (
@@ -154,6 +215,7 @@ const Navbar: React.FC = () => {
             
             {isAuthenticated ? (
               <div className="flex flex-col space-y-2 pt-2 border-t border-gray-200">
+                {/* User Info */}
                 <div className="flex items-center gap-3 px-2 py-2 bg-gray-50 rounded-lg">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
                     {user?.name?.charAt(0) || 'U'}
@@ -161,9 +223,16 @@ const Navbar: React.FC = () => {
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
                     <p className="text-xs text-gray-500">{user?.email}</p>
+                    <span className={`inline-block mt-0.5 px-2 py-0.5 text-xs rounded-full ${
+                      isAdmin ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {isAdmin ? 'Admin' : 'Customer'}
+                    </span>
                   </div>
                 </div>
-                {userMenuItems.map((item) => (
+
+                {/* Menu Items */}
+                {getMenuItems().map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
@@ -172,8 +241,27 @@ const Navbar: React.FC = () => {
                   >
                     <item.icon className="text-gray-400" />
                     {item.name}
+                    {item.path === '/admin' && (
+                      <span className="ml-auto text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                        Admin
+                      </span>
+                    )}
                   </Link>
                 ))}
+
+                {/* Admin to Customer toggle */}
+                {isAdmin && (
+                  <Link
+                    to="/dashboard"
+                    className="flex items-center gap-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={toggleMenu}
+                  >
+                    <FiLayout className="text-gray-400" />
+                    Customer Dashboard
+                  </Link>
+                )}
+
+                {/* Logout */}
                 <button
                   onClick={() => {
                     handleLogout();
