@@ -269,6 +269,8 @@ const Dashboard: React.FC = () => {
         </Link>
       </div>
 
+      
+
       {recentActivities.length > 0 && (
         <div className="bg-white rounded-xl shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">

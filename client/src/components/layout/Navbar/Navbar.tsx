@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   FiMenu, FiX, FiUser, FiLogOut, FiHome, FiTool, 
   FiInfo, FiPhone, FiHelpCircle, FiChevronDown,
-  FiSettings, FiFileText, FiClock, FiCreditCard, FiStar
+  FiSettings, FiFileText, FiClock, FiCreditCard, FiStar,
+  FiDollarSign, FiCalendar
 } from 'react-icons/fi';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -33,7 +34,8 @@ const Navbar: React.FC = () => {
   const userMenuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: FiHome },
     { name: 'My Requests', path: '/my-requests', icon: FiFileText },
-    { name: 'Appointments', path: '/appointments', icon: FiClock },
+    { name: 'Quotations', path: '/quotations', icon: FiDollarSign },
+    { name: 'Appointments', path: '/appointments', icon: FiCalendar },
     { name: 'Payments', path: '/payments', icon: FiCreditCard },
     { name: 'Reviews', path: '/reviews', icon: FiStar },
     { name: 'Profile', path: '/profile', icon: FiUser },
@@ -50,7 +52,7 @@ const Navbar: React.FC = () => {
             <span className="text-2xl font-bold text-gray-800">Bridge</span>
           </Link>
 
-     
+          
           <div className="hidden md:flex items-center space-x-6">
             {navLinks.map((link) => (
               <Link
@@ -65,7 +67,7 @@ const Navbar: React.FC = () => {
             
             {isAuthenticated ? (
               <div className="flex items-center space-x-3 relative">
-               
+                {/* User Info with Dropdown */}
                 <button
                   onClick={toggleDropdown}
                   className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2 transition-colors duration-200"
@@ -126,7 +128,7 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-         
+        
           <button
             onClick={toggleMenu}
             className="md:hidden text-gray-700 hover:text-blue-600 transition-colors"
@@ -135,6 +137,7 @@ const Navbar: React.FC = () => {
           </button>
         </div>
 
+        
         <div className={`md:hidden ${isOpen ? 'block' : 'hidden'} pb-4 border-t border-gray-100`}>
           <div className="flex flex-col space-y-3 pt-4">
             {navLinks.map((link) => (
