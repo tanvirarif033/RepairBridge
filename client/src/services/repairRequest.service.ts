@@ -15,11 +15,17 @@ export const repairRequestService = {
       const response = await axios.get(`${API_URL}/repair-requests?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
+      
       return response.data;
     } catch (error: any) {
-      console.error('Get all repair requests error:', error.response?.data || error.message);
+      console.error('Get all repair requests error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       throw error;
     }
   },
@@ -43,6 +49,7 @@ export const repairRequestService = {
       const response = await axios.post(`${API_URL}/repair-requests`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
       return response.data.data;

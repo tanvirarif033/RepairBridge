@@ -7,7 +7,7 @@ export interface Appointment {
   repairRequestId: number;
   quotationId: number;
   appointmentDate: string;
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+  status: string;
   createdAt: string;
   updatedAt: string;
   repairRequest?: {
@@ -16,6 +16,11 @@ export interface Appointment {
     brand: string;
     model: string;
     status: string;
+    user?: {
+      name: string;
+      email: string;
+      phone?: string;
+    };
   };
   quotation?: {
     id: number;
