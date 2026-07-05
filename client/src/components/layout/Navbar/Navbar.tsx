@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   FiMenu, FiX, FiUser, FiLogOut, FiHome, FiTool, 
   FiInfo, FiPhone, FiHelpCircle, FiChevronDown,
-  FiSettings, FiFileText, FiClock, FiCreditCard, FiStar,
+  FiSettings, FiFileText,  FiCreditCard, FiStar,
   FiDollarSign, FiCalendar, FiShield, FiLayout, FiUsers
 } from 'react-icons/fi';
 import { useAuth } from '../../../context/AuthContext';
@@ -69,60 +69,60 @@ const Navbar: React.FC = () => {
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="container-custom">
-        <div className="flex justify-between items-center h-16 md:h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-blue-600">🔧 Repair</span>
-            <span className="text-2xl font-bold text-gray-800">Bridge</span>
+        <div className="flex justify-between items-center h-20 md:h-24">
+          {/* Logo - Larger */}
+          <Link to="/" className="flex items-center space-x-3">
+            <span className="text-3xl font-bold text-blue-600">🔧 Repair</span>
+            <span className="text-3xl font-bold text-gray-800">Bridge</span>
             {isAdmin && (
-              <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+              <span className="ml-2 text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-semibold">
                 Admin
               </span>
             )}
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-6">
+          {/* Desktop Menu - Larger Text */}
+          <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium flex items-center gap-1"
+                className="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium flex items-center gap-2 text-base"
               >
-                <link.icon className="text-lg" />
+                <link.icon className="text-xl" />
                 {link.name}
               </Link>
             ))}
             
             {isAuthenticated ? (
-              <div className="flex items-center space-x-3 relative">
+              <div className="flex items-center space-x-4 relative">
                 {/* User Info with Dropdown */}
                 <button
                   onClick={toggleDropdown}
-                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2 transition-colors duration-200"
+                  className="flex items-center gap-3 bg-gray-100 hover:bg-gray-200 rounded-full px-5 py-2.5 transition-colors duration-200"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-base">
                     {user?.name?.charAt(0) || 'U'}
                   </div>
-                  <span className="text-sm font-medium text-gray-700">{user?.name}</span>
-                  <FiChevronDown className={`text-gray-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  <span className="text-base font-medium text-gray-700">{user?.name}</span>
+                  <FiChevronDown className={`text-gray-500 text-lg transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {/* Dropdown Menu */}
                 {isDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-lg py-2 border border-gray-100 animate-fadeIn">
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-lg py-2 border border-gray-100 animate-fadeIn">
                     {/* User Info */}
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
-                      <p className="text-xs text-gray-500">{user?.email}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${
+                      <p className="text-base font-semibold text-gray-900">{user?.name}</p>
+                      <p className="text-sm text-gray-500">{user?.email}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className={`inline-block px-2.5 py-1 text-xs rounded-full font-medium ${
                           isAdmin ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
                         }`}>
                           {isAdmin ? 'Admin' : 'Customer'}
                         </span>
                         {isAdmin && (
-                          <span className="inline-block px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                          <span className="inline-block px-2.5 py-1 text-xs bg-green-100 text-green-700 rounded-full font-medium">
                             <FiShield className="inline w-3 h-3 mr-0.5" />
                             Verified
                           </span>
@@ -136,13 +136,13 @@ const Navbar: React.FC = () => {
                         <Link
                           key={item.path}
                           to={item.path}
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-base text-gray-700 hover:bg-gray-50 transition-colors"
                           onClick={() => setIsDropdownOpen(false)}
                         >
-                          <item.icon className="text-gray-400" />
+                          <item.icon className="text-gray-400 text-lg" />
                           {item.name}
                           {item.path === '/admin' && (
-                            <span className="ml-auto text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                            <span className="ml-auto text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
                               Admin
                             </span>
                           )}
@@ -155,10 +155,10 @@ const Navbar: React.FC = () => {
                       <div className="border-t border-gray-100 py-1">
                         <Link
                           to="/dashboard"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-base text-gray-700 hover:bg-gray-50 transition-colors"
                           onClick={() => setIsDropdownOpen(false)}
                         >
-                          <FiLayout className="text-gray-400" />
+                          <FiLayout className="text-gray-400 text-lg" />
                           Customer Dashboard
                         </Link>
                       </div>
@@ -168,9 +168,9 @@ const Navbar: React.FC = () => {
                     <div className="border-t border-gray-100 py-1">
                       <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
+                        className="flex items-center gap-3 px-4 py-2.5 text-base text-red-600 hover:bg-red-50 transition-colors w-full font-medium"
                       >
-                        <FiLogOut className="text-red-400" />
+                        <FiLogOut className="text-red-400 text-lg" />
                         Logout
                       </button>
                     </div>
@@ -178,11 +178,11 @@ const Navbar: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
-                <Link to="/login" className="btn-outline text-sm">
+              <div className="flex items-center space-x-4">
+                <Link to="/login" className="btn-outline text-base px-6 py-2.5">
                   Login
                 </Link>
-                <Link to="/register" className="btn-primary text-sm">
+                <Link to="/register" className="btn-primary text-base px-6 py-2.5">
                   Register
                 </Link>
               </div>
@@ -192,9 +192,9 @@ const Navbar: React.FC = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={toggleMenu}
-            className="md:hidden text-gray-700 hover:text-blue-600 transition-colors"
+            className="md:hidden text-gray-700 hover:text-blue-600 transition-colors p-2"
           >
-            {isOpen ? <FiX className="text-2xl" /> : <FiMenu className="text-2xl" />}
+            {isOpen ? <FiX className="text-3xl" /> : <FiMenu className="text-3xl" />}
           </button>
         </div>
 
@@ -205,25 +205,25 @@ const Navbar: React.FC = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-50"
+                className="text-gray-700 hover:text-blue-600 transition-colors font-medium flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 text-base"
                 onClick={toggleMenu}
               >
-                <link.icon className="text-lg" />
+                <link.icon className="text-xl" />
                 {link.name}
               </Link>
             ))}
             
             {isAuthenticated ? (
-              <div className="flex flex-col space-y-2 pt-2 border-t border-gray-200">
+              <div className="flex flex-col space-y-3 pt-3 border-t border-gray-200">
                 {/* User Info */}
-                <div className="flex items-center gap-3 px-2 py-2 bg-gray-50 rounded-lg">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
+                <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-lg">
                     {user?.name?.charAt(0) || 'U'}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
-                    <p className="text-xs text-gray-500">{user?.email}</p>
-                    <span className={`inline-block mt-0.5 px-2 py-0.5 text-xs rounded-full ${
+                    <p className="text-base font-semibold text-gray-900">{user?.name}</p>
+                    <p className="text-sm text-gray-500">{user?.email}</p>
+                    <span className={`inline-block mt-1 px-2.5 py-1 text-xs rounded-full font-medium ${
                       isAdmin ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
                     }`}>
                       {isAdmin ? 'Admin' : 'Customer'}
@@ -236,13 +236,13 @@ const Navbar: React.FC = () => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className="flex items-center gap-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 text-base text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                     onClick={toggleMenu}
                   >
-                    <item.icon className="text-gray-400" />
+                    <item.icon className="text-gray-400 text-lg" />
                     {item.name}
                     {item.path === '/admin' && (
-                      <span className="ml-auto text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                      <span className="ml-auto text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
                         Admin
                       </span>
                     )}
@@ -253,10 +253,10 @@ const Navbar: React.FC = () => {
                 {isAdmin && (
                   <Link
                     to="/dashboard"
-                    className="flex items-center gap-3 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 text-base text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                     onClick={toggleMenu}
                   >
-                    <FiLayout className="text-gray-400" />
+                    <FiLayout className="text-gray-400 text-lg" />
                     Customer Dashboard
                   </Link>
                 )}
@@ -267,18 +267,18 @@ const Navbar: React.FC = () => {
                     handleLogout();
                     toggleMenu();
                   }}
-                  className="flex items-center gap-3 px-2 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 text-base text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
                 >
-                  <FiLogOut className="text-red-400" />
+                  <FiLogOut className="text-red-400 text-lg" />
                   Logout
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col space-y-2 pt-2 border-t border-gray-200">
-                <Link to="/login" className="btn-outline text-center" onClick={toggleMenu}>
+              <div className="flex flex-col space-y-3 pt-3 border-t border-gray-200">
+                <Link to="/login" className="btn-outline text-center text-base py-3" onClick={toggleMenu}>
                   Login
                 </Link>
-                <Link to="/register" className="btn-primary text-center" onClick={toggleMenu}>
+                <Link to="/register" className="btn-primary text-center text-base py-3" onClick={toggleMenu}>
                   Register
                 </Link>
               </div>
