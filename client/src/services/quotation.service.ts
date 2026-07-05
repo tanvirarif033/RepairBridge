@@ -11,7 +11,7 @@ export interface Quotation {
   warranty?: string;
   appointmentDate: string;
   notes?: string;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'RESCHEDULE_REQUESTED' | 'ANOTHER_SERVICE_CENTER_REQUESTED';
+  status: string;
   createdAt: string;
   updatedAt: string;
   repairRequest?: {
@@ -34,9 +34,7 @@ export const quotationService = {
   async getMyQuotations(token: string): Promise<Quotation[]> {
     try {
       const response = await axios.get(`${API_URL}/quotations/my`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       return response.data.data;
     } catch (error: any) {
@@ -48,9 +46,7 @@ export const quotationService = {
   async getById(token: string, id: number): Promise<Quotation> {
     try {
       const response = await axios.get(`${API_URL}/quotations/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       return response.data.data;
     } catch (error: any) {
@@ -59,71 +55,46 @@ export const quotationService = {
     }
   },
 
-  async accept(token: string, id: number): Promise<Quotation> {
+  // Customer action on quotation with optional reschedule data
+  async customerAction(
+    token: string, 
+    id: number, 
+    action: 'ACCEPT' | 'REJECT' | 'RESCHEDULE' | 'ANOTHER_SERVICE_CENTER',
+    rescheduleData?: { newDate?: string; notes?: string }
+  ): Promise<Quotation> {
     try {
-      const response = await axios.patch(`${API_URL}/quotations/${id}/action`, 
-        { action: 'ACCEPT' },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const payload: any = { action };
+      if (rescheduleData) {
+        payload.newDate = rescheduleData.newDate;
+        payload.notes = rescheduleData.notes;
+      }
+      
+      const response = await axios.patch(
+        `${API_URL}/quotations/${id}/action`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       return response.data.data;
     } catch (error: any) {
-      console.error('Accept quotation error:', error.response?.data || error.message);
+      console.error('Customer action error:', error.response?.data || error.message);
       throw error;
     }
+  },
+
+  async accept(token: string, id: number): Promise<Quotation> {
+    return this.customerAction(token, id, 'ACCEPT');
   },
 
   async reject(token: string, id: number): Promise<Quotation> {
-    try {
-      const response = await axios.patch(`${API_URL}/quotations/${id}/action`,
-        { action: 'REJECT' },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return response.data.data;
-    } catch (error: any) {
-      console.error('Reject quotation error:', error.response?.data || error.message);
-      throw error;
-    }
+    return this.customerAction(token, id, 'REJECT');
   },
 
-  async requestReschedule(token: string, id: number): Promise<Quotation> {
-    try {
-      const response = await axios.patch(`${API_URL}/quotations/${id}/action`,
-        { action: 'RESCHEDULE' },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return response.data.data;
-    } catch (error: any) {
-      console.error('Request reschedule error:', error.response?.data || error.message);
-      throw error;
-    }
+  async requestReschedule(token: string, id: number, newDate?: string): Promise<Quotation> {
+    return this.customerAction(token, id, 'RESCHEDULE', { newDate });
   },
 
   async requestAnotherCenter(token: string, id: number): Promise<Quotation> {
-    try {
-      const response = await axios.patch(`${API_URL}/quotations/${id}/action`,
-        { action: 'ANOTHER_SERVICE_CENTER' },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return response.data.data;
-    } catch (error: any) {
-      console.error('Request another center error:', error.response?.data || error.message);
-      throw error;
-    }
+    return this.customerAction(token, id, 'ANOTHER_SERVICE_CENTER');
   },
 };
+

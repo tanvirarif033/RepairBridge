@@ -14,7 +14,7 @@ interface UpdateReviewInput {
 }
 
 export const createReview = async (data: CreateReviewInput) => {
-  // Check if repair request exists
+ 
   const repairRequest = await prisma.repairRequest.findUnique({
     where: { id: data.repairRequestId },
     include: {
@@ -26,17 +26,17 @@ export const createReview = async (data: CreateReviewInput) => {
     throw new Error("Repair request not found");
   }
 
-  // Check if user owns this repair request
+  
   if (repairRequest.userId !== data.userId) {
     throw new Error("You are not authorized to review this repair request");
   }
 
-  // Check if repair request is completed
+
   if (repairRequest.status !== RequestStatus.COMPLETED) {
     throw new Error("Only completed repair requests can be reviewed");
   }
 
-  // Check if review already exists
+  
   const existingReview = await prisma.review.findUnique({
     where: { repairRequestId: data.repairRequestId },
   });
@@ -45,12 +45,12 @@ export const createReview = async (data: CreateReviewInput) => {
     throw new Error("Review already exists for this repair request");
   }
 
-  // Validate rating
+
   if (data.rating < 1 || data.rating > 5) {
     throw new Error("Rating must be between 1 and 5");
   }
 
-  // Create review
+
   const review = await prisma.review.create({
     data: {
       userId: data.userId,
@@ -225,12 +225,12 @@ export const updateReview = async (
     throw new Error("Review not found");
   }
 
-  // Check if user owns this review
+ 
   if (review.userId !== userId) {
     throw new Error("You are not authorized to update this review");
   }
 
-  // Validate rating if provided
+
   if (data.rating && (data.rating < 1 || data.rating > 5)) {
     throw new Error("Rating must be between 1 and 5");
   }
@@ -338,7 +338,7 @@ export const getReviewStatistics = async () => {
   };
 };
 
-// FIXED: Completely rewritten getServiceCenterRatings function using SQL query
+
 export const getServiceCenterRatings = async () => {
   // Use raw SQL to get all service centers with their review ratings
   const serviceCentersWithRatings = await prisma.$queryRaw`
@@ -357,7 +357,6 @@ export const getServiceCenterRatings = async () => {
     ORDER BY averageRating DESC
   `;
 
-  // Format the response
   return (serviceCentersWithRatings as any[]).map((center) => ({
     id: center.id,
     name: center.name,

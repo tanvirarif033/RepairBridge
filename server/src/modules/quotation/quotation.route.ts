@@ -9,24 +9,31 @@ import {
   updateQuotationController,
   customerQuotationActionController,
   getMyQuotationsController,
+  adminUpdateQuotationController,
 } from "./quotation.controller";
 
 const router = Router();
 
 
-router.post(
-  "/",
-  auth,
-  authorize(Role.ADMIN),
-  createQuotationController
-);
 
-router.patch(
-  "/:id",
-  auth,
-  authorize(Role.ADMIN),
-  updateQuotationController
-);
+router.get("/my", auth, getMyQuotationsController);
+
+
+router.get("/:id", auth, getQuotationController);
+
+
+router.patch("/:id/action", auth, customerQuotationActionController);
+
+
+
+router.post("/", auth, authorize(Role.ADMIN), createQuotationController);
+
+
+router.patch("/:id", auth, authorize(Role.ADMIN), updateQuotationController);
+
+
+router.patch("/:id/admin", auth, authorize(Role.ADMIN), adminUpdateQuotationController);
+
 
 router.get(
   "/repair-request/:repairRequestId",
@@ -35,15 +42,5 @@ router.get(
   getQuotationsByRepairRequestController
 );
 
-
-router.get("/my", auth, getMyQuotationsController);
-
-router.get("/:id", auth, getQuotationController);
-
-router.patch(
-  "/:id/action",
-  auth,
-  customerQuotationActionController
-);
 
 export default router;

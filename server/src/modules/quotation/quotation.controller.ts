@@ -7,6 +7,7 @@ import {
   updateQuotation,
   customerActionOnQuotation,
   getCustomerQuotations,
+  adminUpdateQuotation,
 } from "./quotation.service";
 
 export const createQuotationController = async (req: Request, res: Response) => {
@@ -83,16 +84,15 @@ export const updateQuotationController = async (req: Request, res: Response) => 
   }
 };
 
-
+// Customer action on quotation - UPDATED with reschedule support
 export const customerQuotationActionController = async (
   req: AuthRequest,
   res: Response
 ) => {
   try {
     const quotationId = Number(req.params.id);
-    const { action } = req.body;
+    const { action, newDate, notes } = req.body;
 
-    // FIXED: Changed 'laction' to 'action'
     if (!action) {
       return res.status(400).json({
         success: false,
@@ -103,7 +103,15 @@ export const customerQuotationActionController = async (
    
     const quotation = await getQuotationById(quotationId);
     
-  
+    
+    if (!quotation) {
+      return res.status(404).json({
+        success: false,
+        message: "Quotation not found",
+      });
+    }
+    
+    
     if (Number(quotation.repairRequest.userId) !== Number(req.user?.id)) {
       return res.status(403).json({
         success: false,
@@ -111,11 +119,16 @@ export const customerQuotationActionController = async (
       });
     }
 
-    const result = await customerActionOnQuotation(quotationId, action);
+    
+    const result = await customerActionOnQuotation(
+      quotationId, 
+      action,
+      action === 'RESCHEDULE' ? { newDate: newDate ? new Date(newDate) : undefined, notes } : undefined
+    );
 
     res.status(200).json({
       success: true,
-      message: "Quotation action performed successfully",
+      message: `Quotation ${action.toLowerCase()} successfully`,
       data: result,
     });
   } catch (error: any) {
@@ -134,6 +147,25 @@ export const getMyQuotationsController = async (req: AuthRequest, res: Response)
     res.status(200).json({
       success: true,
       message: "Your quotations fetched successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Admin: Update quotation with customer response
+export const adminUpdateQuotationController = async (req: Request, res: Response) => {
+  try {
+    const quotationId = Number(req.params.id);
+    const result = await adminUpdateQuotation(quotationId, req.body);
+
+    res.status(200).json({
+      success: true,
+      message: "Quotation updated successfully",
       data: result,
     });
   } catch (error: any) {

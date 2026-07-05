@@ -54,7 +54,6 @@ export const createRepairRequest = async (
   return repairRequest;
 };
 
-// FIXED: Added pagination, search, and filter support
 export const getMyRepairRequests = async (
   userId: number,
   page: number = 1,
@@ -64,17 +63,16 @@ export const getMyRepairRequests = async (
 ) => {
   const skip = (page - 1) * limit;
 
-  // Build where clause
+ 
   const where: Prisma.RepairRequestWhereInput = {
     userId,
   };
 
-  // Add status filter if provided and not 'all'
   if (status && status !== 'all' && status !== 'undefined') {
     where.status = status as RequestStatus;
   }
 
-  // Add search filter if provided
+  
   if (search && search.trim()) {
     where.OR = [
       {
@@ -100,10 +98,10 @@ export const getMyRepairRequests = async (
     ];
   }
 
-  // Get total count
+  
   const total = await prisma.repairRequest.count({ where });
 
-  // Get requests with pagination
+ 
   const requests = await prisma.repairRequest.findMany({
     where,
     include: {

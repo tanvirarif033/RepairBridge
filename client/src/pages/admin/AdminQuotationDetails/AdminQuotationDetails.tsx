@@ -182,14 +182,7 @@ const AdminQuotationDetails: React.FC = () => {
     
     setSubmitting(true);
     try {
-      const data: any = { status: newStatus };
-      
-      // If accepting, ensure appointment is confirmed
-      if (newStatus === 'ACCEPTED' && quotation?.appointmentDate) {
-        data.appointmentDate = quotation.appointmentDate;
-      }
-      
-      await adminService.adminUpdateQuotation(token!, Number(id), data);
+      await adminService.adminUpdateQuotation(token!, Number(id), { status: newStatus });
       toast.success(`Quotation status updated to ${newStatus.replace(/_/g, ' ')}`);
       fetchQuotationDetails();
     } catch (error) {
@@ -242,8 +235,10 @@ const AdminQuotationDetails: React.FC = () => {
 
     setUpdatingCenter(true);
     try {
+      // Try to find the center in existing service centers
       let centerId = parseInt(selectedNewCenter.id);
       
+      // If ID is not valid, try to find by name in the repair request's service centers
       if (isNaN(centerId) || centerId === 0) {
         const existingCenter = quotation?.repairRequest?.selectedServiceCenters?.find(
           (sc: any) => sc.name === selectedNewCenter.name
@@ -252,6 +247,7 @@ const AdminQuotationDetails: React.FC = () => {
         if (existingCenter) {
           centerId = existingCenter.id;
         } else {
+          // Use the first available service center
           const firstCenter = quotation?.repairRequest?.selectedServiceCenters?.[0];
           if (firstCenter) {
             centerId = firstCenter.id;
@@ -266,7 +262,7 @@ const AdminQuotationDetails: React.FC = () => {
         token!, 
         Number(id), 
         centerId,
-        `Admin changed service center to: ${selectedNewCenter.name} | Address: ${selectedNewCenter.address} | Phone: ${selectedNewCenter.phone || 'N/A'}`
+        `Admin changed service center to: ${selectedNewCenter.name} | Address: ${selectedNewCenter.address} | Phone: ${selectedNewCenter.phone || 'N/A'} | Distance: ${selectedNewCenter.distance ? (selectedNewCenter.distance * 1000).toFixed(0) + 'm' : 'N/A'}`
       );
       
       toast.success(`Service center updated to "${selectedNewCenter.name}" successfully!`);
@@ -294,8 +290,10 @@ const AdminQuotationDetails: React.FC = () => {
 
     setUpdatingCenter(true);
     try {
+      // Try to find the center in existing service centers by name
       let centerId = quotation?.serviceCenterId;
       
+      // If no service center ID, try to find by name
       if (!centerId && quotation?.repairRequest?.selectedServiceCenters?.length) {
         const existingCenter = quotation.repairRequest.selectedServiceCenters.find(
           (sc: any) => sc.name === anotherCenterInfo.name
@@ -303,6 +301,7 @@ const AdminQuotationDetails: React.FC = () => {
         if (existingCenter) {
           centerId = existingCenter.id;
         } else {
+          // Use the first available service center
           centerId = quotation.repairRequest.selectedServiceCenters[0]?.id;
         }
       }
@@ -467,6 +466,7 @@ const AdminQuotationDetails: React.FC = () => {
     return null;
   };
 
+  // Get the current service center name for display
   const getCurrentServiceCenterName = () => {
     if (quotation?.serviceCenter) {
       return quotation.serviceCenter.name;

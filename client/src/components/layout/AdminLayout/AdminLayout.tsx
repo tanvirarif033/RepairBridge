@@ -93,7 +93,7 @@ const AdminLayout: React.FC = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
+    
       <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
         {/* Top Bar */}
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
@@ -120,7 +120,7 @@ const AdminLayout: React.FC = () => {
           </div>
         </header>
 
-        {/* Page Content */}
+      
         <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>
